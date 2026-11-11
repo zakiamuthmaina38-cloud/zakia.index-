@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AksesorisKu - Toko Perhiasan & Aksesoris Online</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Playfair Display -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            orange: '#ee4d2d',
+                            rose: '#e07a5f',
+                            gold: '#d4af37',
+                            light: '#fdfbfb',
+                            dark: '#2b2d42'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .product-card:hover { transform: translateY(-4px); transition: all 0.2s ease-in-out; }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 flex flex-col min-h-screen pb-12 sm:pb-0">
+
+    <!-- Top Bar Shopee-Style Announcement -->
+    <div class="bg-gradient-to-r from-orange-600 via-rose-500 to-amber-500 text-white text-xs py-1.5 px-4 text-center font-medium shadow-sm">
+        ✨ Gratis Ongkir XTRA & Voucher Cashback hingga 50% untuk Pengguna Baru!
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20 gap-4">
+                
+                <!-- Logo -->
+                <div class="flex items-center gap-2 cursor-pointer" onclick="filterCategory('semua')">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white shadow-md">
+                        <i class="fa-solid fa-gem text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="text-2xl font-bold font-serif bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">AksesorisKu</span>
+                        <span class="hidden sm:block text-[10px] text-gray-400 -mt-1 tracking-wider uppercase">Jewelry & Accessories</span>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-2xl relative">
+                    <div class="relative flex items-center">
+                        <input type="text" id="searchInput" oninput="handleSearch()" 
+                            placeholder="Cari kalung titanium, gelang serut, cincin tunangan, anting..." 
+                            class="w-full pl-4 pr-12 py-2.5 bg-gray-100 border border-transparent rounded-full text-sm focus:bg-white focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-100 transition-all">
+                        <button onclick="handleSearch()" class="absolute right-1.5 p-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full hover:opacity-90 transition-opacity">
+                            <i class="fa-solid fa-magnifying-glass text-xs w-4 h-4 flex items-center justify-center"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Header Actions (Cart & Map Quick Link) -->
+                <div class="flex items-center gap-4">
+                    <button onclick="scrollToMap()" class="hidden md:flex items-center gap-1.5 text-xs text-gray-600 hover:text-orange-600 bg-gray-100 hover:bg-orange-50 px-3 py-2 rounded-full transition-colors">
+                        <i class="fa-solid fa-map-location-dot text-orange-500"></i>
+                        <span class="font-medium">Lokasi Toko</span>
+                    </button>
+
+                    <!-- Cart Button -->
+                    <button onclick="toggleCartModal()" class="relative p-2.5 text-gray-700 hover:text-orange-600 bg-gray-100 hover:bg-orange-50 rounded-full transition-colors">
+                        <i class="fa-solid fa-cart-shopping text-lg"></i>
+                        <span id="cartBadge" class="absolute -top-1 -right-1 bg-orange-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white hidden">0</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+        <!-- Banner Promo Slider -->
+        <section class="relative rounded-2xl overflow-hidden shadow-lg bg-gradient-to-r from-rose-900 via-purple-900 to-slate-900 text-white">
+            <div class="relative z-10 p-6 sm:p-10 md:p-12 max-w-xl">
+                <span class="inline-block px-3 py-1 bg-amber-400 text-gray-900 font-bold text-xs rounded-full uppercase tracking-wider mb-3">Promo Spesial Bulan Ini</span>
+                <h1 class="text-3xl sm:text-4xl font-serif font-bold leading-tight text-white mb-3">Koleksi Perhiasan Rose Gold & Crystal Premium</h1>
+                <p class="text-gray-200 text-sm mb-6 leading-relaxed">Tampil makin mempesona dengan kalung, gelang, dan cincin anti karat. Dapatkan diskon hingga 60% + gratis ongkos kirim!</p>
+                <div class="flex flex-wrap gap-3">
+                    <a href="#katalog" class="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-semibold rounded-full shadow-md hover:shadow-orange-500/30 hover:scale-105 transition-all">Belanja Sekarang</a>
+                    <button onclick="scrollToMap()" class="px-5 py-2.5 bg-white/20 backdrop-blur-md text-white border border-white/30 text-sm font-medium rounded-full hover:bg-white/30 transition-all">Kunjungi Outlet Toko</button>
+                </div>
+            </div>
+            <!-- Decorative Background Element -->
+            <div class="absolute right-0 top-0 bottom-0 w-1/2 opacity-30 md:opacity-50 pointer-events-none bg-no-repeat bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80');"></div>
+        </section>
+
+        <!-- Category & Filter Navigation -->
+        <section id="katalog" class="space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4">
+                <h2 class="text-xl font-bold font-serif text-gray-900 flex items-center gap-2">
+                    <i class="fa-solid fa-sparkles text-amber-500"></i> Katalog Aksesoris
+                </h2>
+
+                <!-- Category Pills -->
+                <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                    <button onclick="filterCategory('semua')" id="cat-semua" class="cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-orange-600 text-white shadow-sm transition-all">
+                        Semua Produk
+                    </button>
+                    <button onclick="filterCategory('kalung')" id="cat-kalung" class="cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition-all">
+                        <i class="fa-solid fa-gem mr-1 text-xs"></i> Kalung
+                    </button>
+                    <button onclick="filterCategory('gelang')" id="cat-gelang" class="cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition-all">
+                        <i class="fa-solid fa-ring mr-1 text-xs"></i> Gelang
+                    </button>
+                    <button onclick="filterCategory('cincin')" id="cat-cincin" class="cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition-all">
+                        <i class="fa-solid fa-circle-notch mr-1 text-xs"></i> Cincin
+                    </button>
+                    <button onclick="filterCategory('anting')" id="cat-anting" class="cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition-all">
+                        <i class="fa-solid fa-spa mr-1 text-xs"></i> Anting
+                    </button>
+                </div>
+
+                <!-- Sort & Price Filter -->
+                <div class="flex items-center gap-2">
+                    <label for="sortFilter" class="text-xs font-medium text-gray-500 whitespace-nowrap">Urutkan:</label>
+                    <select id="sortFilter" onchange="handleSort()" class="bg-white border border-gray-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-orange-500">
+                        <option value="populer">Paling Populer</option>
+                        <option value="termurah">Harga: Terendah ke Tinggi</option>
+                        <option value="termahal">Harga: Tinggi ke Terendah</option>
+                        <option value="rating">Rating Tertinggi</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+                <!-- Dynamic product cards will be rendered here -->
+            </div>
+
+            <!-- Empty State Search Result -->
+            <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200">
+                <i class="fa-solid fa-box-open text-5xl text-gray-300 mb-3"></i>
+                <p class="text-gray-500 font-medium">Tidak ada produk yang sesuai pencarian atau filter Anda.</p>
+                <button onclick="resetFilters()" class="mt-3 px-4 py-2 bg-orange-100 text-orange-600 text-xs font-semibold rounded-full hover:bg-orange-200">Reset Filter</button>
+            </div>
+
+            <!-- Store Details Info -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 text-xs">
+                <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                    <i class="fa-solid fa-building text-orange-500 text-base mt-0.5"></i>
+                    <div>
+                        <strong class="block text-gray-800 text-sm">AksesorisKu Flagship Store</strong>
+                        <p class="text-gray-500 mt-0.5">Jl. Grand Indonesia No. 45, Jakarta Pusat, DKI Jakarta</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                    <i class="fa-solid fa-clock text-amber-500 text-base mt-0.5"></i>
+                    <div>
+                        <strong class="block text-gray-800 text-sm">Jam Operasional</strong>
+                        <p class="text-gray-500 mt-0.5">Senin - Minggu: 09:00 - 21:00 WIB</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                    <i class="fa-solid fa-headset text-rose-500 text-base mt-0.5"></i>
+                    <div>
+                        <strong class="block text-gray-800 text-sm">Layanan Pelanggan</strong>
+                        <p class="text-gray-500 mt-0.5">WhatsApp: +62 812-3456-7890 | Email: cs@aksesorisku.com</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-gray-400 text-xs py-8 mt-12 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                <div>
+                    <h3 class="text-white font-bold text-sm mb-3">AksesorisKu</h3>
+                    <p class="leading-relaxed">Pusat aksesoris perhiasan lapis emas & titanium kualitas tinggi dengan harga terjangkau.</p>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold text-sm mb-3">Layanan Pelanggan</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-white">Bantuan & FAQ</a></li>
+                        <li><a href="#" class="hover:text-white">Cara Pembelian</a></li>
+                        <li><a href="#" class="hover:text-white">Pengembalian Barang</a></li>
+                        <li><a href="#" class="hover:text-white">Garansi Warna 1 Tahun</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold text-sm mb-3">Metode Pembayaran</h3>
+                    <div class="flex flex-wrap gap-2 text-lg text-white">
+                        <i class="fa-brands fa-cc-visa"></i>
+                        <i class="fa-brands fa-cc-mastercard"></i>
+                        <i class="fa-solid fa-wallet"></i>
+                        <i class="fa-solid fa-money-bill-transfer"></i>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold text-sm mb-3">Ikuti Kami</h3>
+                    <div class="flex gap-3 text-base">
+                        <a href="#" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-orange-600 text-white transition-colors"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-orange-600 text-white transition-colors"><i class="fa-brands fa-tiktok"></i></a>
+                        <a href="#" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-orange-600 text-white transition-colors"><i class="fa-brands fa-facebook"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-slate-800 pt-4 text-center">
+                &copy; 2026 AksesorisKu. Seluruh Hak Cipta Dilindungi. Inspired by Shopee Style UI.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Product Detail Modal -->
+    <div id="productDetailModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <button onclick="closeProductDetail()" class="absolute top-4 right-4 z-10 w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="modalProductContent" class="p-6">
+                <!-- Rendered dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Shopping Cart & Checkout Modal -->
+    <div id="cartModal" class="fixed inset-0 bg-black/60 z-50 flex justify-end hidden backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
+            <!-- Modal Header -->
+            <div class="p-4 border-b flex items-center justify-between bg-gray-50">
+                <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fa-solid fa-bag-shopping text-orange-500"></i> Keranjang Belanja (<span id="cartCountHeader">0</span>)
+                </h3>
+                <button onclick="toggleCartModal()" class="w-8 h-8 text-gray-500 hover:bg-gray-200 rounded-full flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Cart Items List -->
+            <div id="cartItemsList" class="flex-1 overflow-y-auto p-4 space-y-3">
+                <!-- Dynamically filled -->
+            </div>
+
+            <!-- Checkout Form Section -->
+            <div class="p-4 border-t bg-gray-50 space-y-3">
+                <div class="space-y-2 text-xs">
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">Metode Pembayaran</label>
+                        <select id="paymentMethod" class="w-full p-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-orange-500">
+                            <option value="qris">QRIS Instant (GoPay, OVO, ShopeePay)</option>
+                            <option value="tf">Transfer Bank (BCA, Mandiri, BRI)</option>
+                            <option value="cod">COD (Bayar di Tempat)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">Kurir Pengiriman</label>
+                        <select id="shippingMethod" onchange="renderCart()" class="w-full p-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-orange-500">
+                            <option value="10000">Reguler (J&T / Sicepat) - Rp 10.000</option>
+                            <option value="20000">Express Instant (Gojek / Grab) - Rp 20.000</option>
+                            <option value="0">Bebas Ongkir XTRA (Promo) - Rp 0</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="border-t pt-2 space-y-1 text-xs">
+                    <div class="flex justify-between text-gray-500">
+                        <span>Subtotal Produk</span>
+                        <span id="subtotalPrice">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between text-gray-500">
+                        <span>Ongkos Kirim</span>
+                        <span id="shippingPrice">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-sm text-gray-900 pt-1 border-t">
+                        <span>Total Pembayaran</span>
+                        <span id="totalPrice" class="text-orange-600">Rp 0</span>
+                    </div>
+                </div>
+
+                <button onclick="processCheckout()" class="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-orange-500/30 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-lock"></i> Buat Pesanan Sekarang
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert / Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 transition-all duration-300 transform translate-y-20 opacity-0 z-50 text-xs">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toastMessage">Pesan pemberitahuan...</span>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // Data Produk Aksesoris (Lengkap dengan Gambar Unsplash & Detail Varian)
+        const products = [
+            {
+                id: 1,
+                name: "Kalung Titanium Rose Gold Pendant Crystal Butterfly",
+                category: "kalung",
+                price: 48500,
+                rating: 4.9,
+                sold: "1.2rb+",
+                location: "Jakarta Pusat",
+                image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=500&q=80",
+                material: "Titanium Lapis Emas 18K (Anti Karat & Luntur)",
+                size: "Panjang Rantai 45 cm + 5 cm Ekstensi",
+                variants: ["Rose Gold", "Gold", "Silver"],
+                description: "Kalung wanita estetik dengan liontin kupu-kupu kristal berkilau. Bahan titanium premium aman untuk kulit sensitif dan tidak menyebabkan alergi."
+            },
+            {
+                id: 2,
+                name: "Gelang Serut Zirconia Elegance Adjustable",
+                category: "gelang",
+                price: 35000,
+                rating: 4.8,
+                sold: "850+",
+                location: "Jakarta Selatan",
+                image: "https://ds393qgzrxwzn.cloudfront.net/cat1/img/images/0/BhIVWrfM7H.jpg",
+                material: "Copper Alloy + Cubic Zirconia",
+                size: "Adjustable (Dapat disesuaikan)",
+                variants: ["Rose Gold", "Silver"],
+                description: "Gelang wanita model serut elegan dengan deretan mata zircon berkilauan bak berlian. Sangat cocok dipakai untuk pesta maupun daily wear."
+            },
+            {
+                id: 3,
+                name: "Cincin Tunangan Titanium Minimalis Band Solitaire",
+                category: "cincin",
+                price: 29000,
+                rating: 4.9,
+                sold: "2.4rb+",
+                location: "Bandung",
+                image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=500&q=80",
+                material: "Stainless Steel Titanium Grade 316L",
+                size: "Size 6, 7, 8, 9",
+                variants: ["Silver Solitaire", "Gold Solitaire"],
+                description: "Cincin model solitaire klasik dengan batu utama Zircon berbentuk permata bulat. Tahan karat, tahan air, dan cocok untuk cincin pasangan."
+            },
+            {
+                id: 4,
+                name: "Anting Subang Hoops Korean Pearl Drop Gold",
+                category: "anting",
+                price: 22500,
+                rating: 4.7,
+                sold: "640+",
+                location: "Surabaya",
+                image: "https://images.unsplash.com/photo-1635767798638-3e25273a8236?auto=format&fit=crop&w=500&q=80",
+                material: "Jarum Perak S925 + Mutiara Sintesis Premium",
+                size: "Diameter Lingkaran 2 cm",
+                variants: ["Pearl Gold", "Pearl Silver"],
+                description: "Anting model Korea terbaru dengan kombinasi lingkaran emas dan aksen mutiara gantung yang manis. Jarum terbuat dari S925 anti alergi."
+            },
+            {
+                id: 5,
+                name: "Kalung Layering Chain Aesthetic Multi-layer",
+                category: "kalung",
+                price: 52000,
+                rating: 4.8,
+                sold: "920+",
+                location: "Jakarta Pusat",
+                image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=500&q=80",
+                material: "Alloy Lapis Emas Premium",
+                size: "Rantai Tingkat 40cm & 50cm",
+                variants: ["Gold Classic"],
+                description: "Kalung tumpuk ganda bergaya vintage aesthetic. Memberikan kesan kasual modern saat dipadukan dengan kemeja atau dress."
+            },
+            {
+                id: 6,
+                name: "Gelang Rantai Charm Clover Titanium Luckiness",
+                category: "gelang",
+                price: 42000,
+                rating: 4.9,
+                sold: "1.8rb+",
+                location: "Tangerang",
+                image: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=500&q=80",
+                material: "Titanium Premium",
+                size: "Panjang 17 cm + 4 cm",
+                variants: ["Black Clover", "White Clover"],
+                description: "Gelang motif daun keberuntungan 4 helai (Clover). Pilihan populer bagi pecinta style perhiasan luxury berkelas."
+            },
+            {
+                id: 7,
+                name: "Cincin Set Stackable Retro Vintage Boho (Isi 5)",
+                category: "cincin",
+                price: 38000,
+                rating: 4.6,
+                sold: "410+",
+                location: "Yogyakarta",
+                image: "https://images.unsplash.com/photo-1598560917505-59a3ad559071?auto=format&fit=crop&w=500&q=80",
+                material: "Paduan Logam Vintage Alloy",
+                size: "Ukuran bervariasi (Multisize Set)",
+                variants: ["Set Gold", "Set Silver"],
+                description: "Satu set berisi 5 pcs cincin dengan bermacam ukiran artistik retro. Bikin gaya jemari Anda terlihat stylish dan edgy."
+            },
+            {
+                id: 8,
+                name: "Anting Stud Zirconia Square Sparkle Minimalis",
+                category: "anting",
+                price: 18000,
+                rating: 4.9,
+                sold: "3.1rb+",
+                location: "Jakarta Pusat",
+                image: "https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?auto=format&fit=crop&w=500&q=80",
+                material: "Silver S925 Needle + Zirconia",
+                size: "Ukuran Batu 5mm x 5mm",
+                variants: ["Crystal Clear", "Rose Pink"],
+                description: "Anting tusuk model kotak minimalis dengan kilau memikat. Cocok dipakai sehari-hari tanpa terasa berat di telinga."
+            },
+             {
+                id: 9,
+                name: "Anting Stud Zirconia Square Sparkle Minimalis",
+                category: "anting",
+                price: 18000,
+                rating: 4.9,
+                sold: "3.1rb+",
+                location: "Jakarta Pusat",
+                image: "https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?auto=format&fit=crop&w=500&q=80",
+                material: "Silver S925 Needle + Zirconia",
+                size: "Ukuran Batu 5mm x 5mm",
+                variants: ["Crystal Clear", "Rose Pink"],
+                description: "Anting tusuk model kotak minimalis dengan kilau memikat. Cocok dipakai sehari-hari tanpa terasa berat di telinga."
+            }
+        ];
+
+        // State Aplikasi
+        let cart = [];
+        let activeCategory = 'semua';
+        let searchQuery = '';
+        let map = null;
+
+        // Inisialisasi Aplikasi saat DOM Siap
+        window.addEventListener('DOMContentLoaded', () => {
+            renderProducts();
+            initLeafletMap();
+        });
+
+        // Format Rupiah
+        function formatRupiah(amount) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
+        }
+
+        // Render Katalog Produk
+        function renderProducts() {
+            const grid = document.getElementById('productGrid');
+            const emptyState = document.getElementById('emptyState');
+            
+            // Filter Berdasarkan Kategori & Search
+            let filtered = products.filter(product => {
+                const matchCategory = activeCategory === 'semua' || product.category === activeCategory;
+                const matchSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                    product.description.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchCategory && matchSearch;
+            });
+
+            // Urutkan
+            const sortVal = document.getElementById('sortFilter').value;
+            if (sortVal === 'termurah') filtered.sort((a, b) => a.price - b.price);
+            if (sortVal === 'termahal') filtered.sort((a, b) => b.price - a.price);
+            if (sortVal === 'rating') filtered.sort((a, b) => b.rating - a.rating);
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            grid.innerHTML = filtered.map(p => `
+                <div class="product-card bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md flex flex-col cursor-pointer transition-all">
+                    <!-- Image Box -->
+                    <div class="relative w-full aspect-square overflow-hidden bg-gray-100" onclick="openProductDetail(${p.id})">
+                        <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+                        <span class="absolute top-2 left-2 bg-orange-600/90 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                            Star+
+                        </span>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="p-3 flex-1 flex flex-col justify-between space-y-2">
+                        <div onclick="openProductDetail(${p.id})">
+                            <h3 class="text-xs font-medium text-gray-800 line-clamp-2 leading-relaxed hover:text-orange-600 transition-colors">
+                                ${p.name}
+                            </h3>
+                            <div class="mt-2 flex items-baseline gap-1">
+                                <span class="text-sm font-bold text-orange-600">${formatRupiah(p.price)}</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-500">
+                            <div class="flex items-center gap-1">
+                                <i class="fa-solid fa-star text-amber-400"></i>
+                                <span>${p.rating}</span>
+                                <span class="text-gray-300">•</span>
+                                <span>Terjual ${p.sold}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-1">
+                            <span class="text-[10px] text-gray-400 flex items-center gap-1">
+                                <i class="fa-solid fa-location-dot"></i> ${p.location}
+                            </span>
+                            <button onclick="addToCart(${p.id}); event.stopPropagation();" 
+                                class="p-2 bg-orange-50 hover:bg-orange-500 text-orange-600 hover:text-white rounded-xl transition-all"
+                                title="+ Keranjang">
+                                <i class="fa-solid fa-cart-plus text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filter Kategori
+        function filterCategory(cat) {
+            activeCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.className = "cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition-all";
+            });
+            const selectedBtn = document.getElementById(`cat-${cat}`);
+            if (selectedBtn) {
+                selectedBtn.className = "cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-orange-600 text-white shadow-sm transition-all";
+            }
+            renderProducts();
+        }
+
+        // Search & Sorting Handler
+        function handleSearch() {
+            searchQuery = document.getElementById('searchInput').value;
+            renderProducts();
+        }
+
+        function handleSort() {
+            renderProducts();
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            searchQuery = '';
+            filterCategory('semua');
+        }
+
+        // Detail Produk Modal
+        function openProductDetail(id) {
+            const p = products.find(prod => prod.id === id);
+            if (!p) return;
+
+            const modalContent = document.getElementById('modalProductContent');
+            modalContent.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="rounded-xl overflow-hidden bg-gray-100 aspect-square">
+                        <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="space-y-4 flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-semibold px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full uppercase tracking-wider">${p.category}</span>
+                            <h2 class="text-lg font-bold font-serif text-gray-900 mt-2">${p.name}</h2>
+                            
+                            <div class="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                                <span class="text-amber-500 font-bold flex items-center gap-1">
+                                    <i class="fa-solid fa-star"></i> ${p.rating}
+                                </span>
+                                <span>•</span>
+                                <span>Terjual ${p.sold} produk</span>
+                                <span>•</span>
+                                <span class="text-gray-400"><i class="fa-solid fa-location-dot"></i> ${p.location}</span>
+                            </div>
+
+                            <div class="text-2xl font-bold text-orange-600 mt-3">${formatRupiah(p.price)}</div>
+
+                            <div class="space-y-2 mt-4 text-xs text-gray-600 bg-gray-50 p-3 rounded-xl">
+                                <p><strong>Material/Bahan:</strong> ${p.material}</p>
+                                <p><strong>Ukuran/Dimensi:</strong> ${p.size}</p>
+                                <div>
+                                    <strong>Pilihan Varian:</strong>
+                                    <div class="flex gap-2 mt-1">
+                                        ${p.variants.map(v => `<span class="px-2.5 py-1 bg-white border border-gray-200 rounded-md font-medium text-gray-700">${v}</span>`).join('')}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="text-xs text-gray-600 mt-3 leading-relaxed">${p.description}</p>
+                        </div>
+
+                        <div class="pt-4 border-t flex gap-3">
+                            <button onclick="addToCart(${p.id}); closeProductDetail();" class="flex-1 py-3 bg-orange-100 hover:bg-orange-200 text-orange-600 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-cart-plus"></i> Tambah Keranjang
+                            </button>
+                            <button onclick="addToCart(${p.id}); closeProductDetail(); toggleCartModal();" class="flex-1 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs rounded-xl shadow-md hover:shadow-orange-500/20 transition-all">
+                                Beli Sekarang
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('productDetailModal').classList.remove('hidden');
+        }
+
+        function closeProductDetail() {
+            document.getElementById('productDetailModal').classList.add('hidden');
+        }
+
+        // Logika Keranjang Belanja
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const existingItem = cart.find(item => item.id === productId);
+
+            if (existingItem) {
+                existingItem.qty += 1;
+            } else {
+                cart.push({ ...product, qty: 1 });
+            }
+
+            updateCartBadge();
+            renderCart();
+            showToast(`"${product.name.substring(0, 20)}..." telah ditambahkan ke keranjang!`);
+        }
+
+        function updateCartBadge() {
+            const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+            const badge = document.getElementById('cartBadge');
+            document.getElementById('cartCountHeader').innerText = totalItems;
+
+            if (totalItems > 0) {
+                badge.innerText = totalItems;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function changeQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.qty += delta;
+                if (item.qty <= 0) {
+                    cart = cart.filter(i => i.id !== id);
+                }
+            }
+            updateCartBadge();
+            renderCart();
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cartItemsList');
+
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-gray-400 space-y-2">
+                        <i class="fa-solid fa-basket-shopping text-4xl"></i>
+                        <p class="text-xs">Keranjang belanja Anda masih kosong.</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = cart.map(item => `
+                    <div class="flex items-center gap-3 p-2.5 bg-white border border-gray-100 rounded-xl shadow-sm">
+                        <img src="${item.image}" alt="${item.name}" class="w-14 h-14 object-cover rounded-lg bg-gray-100">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-xs font-semibold text-gray-800 truncate">${item.name}</h4>
+                            <span class="text-xs font-bold text-orange-600 mt-1 block">${formatRupiah(item.price)}</span>
+                        </div>
+                        <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                            <button onclick="changeQty(${item.id}, -1)" class="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-xs font-bold text-gray-600">-</button>
+                            <span class="px-2.5 text-xs font-medium">${item.qty}</span>
+                            <button onclick="changeQty(${item.id}, 1)" class="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-xs font-bold text-gray-600">+</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Hitung Kalkulasi Harga Total
+            const subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+            const shippingCost = parseInt(document.getElementById('shippingMethod').value || '0');
+            const grandTotal = subtotal > 0 ? subtotal + shippingCost : 0;
+
+            document.getElementById('subtotalPrice').innerText = formatRupiah(subtotal);
+            document.getElementById('shippingPrice').innerText = formatRupiah(shippingCost);
+            document.getElementById('totalPrice').innerText = formatRupiah(grandTotal);
+        }
+
+        function toggleCartModal() {
+            const modal = document.getElementById('cartModal');
+            modal.classList.toggle('hidden');
+            renderCart();
+        }
+
+        function processCheckout() {
+            if (cart.length === 0) {
+                showToast("Keranjang Anda masih kosong!", "error");
+                return;
+            }
+
+            const total = document.getElementById('totalPrice').innerText;
+            const payment = document.getElementById('paymentMethod').selectedOptions[0].text;
+
+            alert(`🎉 PESANAN BERHASIL DIBUAT!\n\nTotal Pembayaran: ${total}\nMetode: ${payment}\n\nTerima kasih telah berbelanja aksesoris perhiasan di AksesorisKu!`);
+            
+            cart = [];
+            updateCartBadge();
+            toggleCartModal();
+
+            // Marker AksesorisKu Store
+            const marker = L.marker(storeCoords, { icon: customIcon }).addTo(map);
+            marker.bindPopup(`
+                <div class="p-1 font-sans text-xs">
+                    <strong class="text-sm font-bold text-gray-800 block mb-1">AksesorisKu Flagship Store</strong>
+                    <p class="text-gray-600 mb-1">Pusat Koleksi Perhiasan & Titik Pengiriman Utama</p>
+                    <span class="text-emerald-600 font-semibold"><i class="fa-solid fa-clock"></i> Buka Hari ini: 09:00 - 21:00</span>
+                </div>
+            `).openPopup();
+        }
+
+        function scrollToMap() {
+            document.getElementById('mapSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Toast Notification System
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            const text = document.getElementById('toastMessage');
+
+            text.innerText = msg;
+            if (type === 'error') {
+                icon.className = "fa-solid fa-triangle-exclamation text-rose-400 text-base";
+            } else {
+                icon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+```
